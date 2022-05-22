@@ -3,15 +3,32 @@ import React from 'react'
 import { useState } from 'react';
 import { Button } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 
-const Register = () => {
+const RegisterScreen = () => {
     const navigation = useNavigation()
-
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
+    const dispatch = useDispatch();
+    const users = useSelector(state => state.auth.users);
+
     const doRegister = () => {
-        
+        const payload = users.find((user) => (user.username === username));
+        if (username.trimStart() === "" || password.trimStart() === "") {
+            alert("Please enter details");
+        } else if (payload) {
+            alert("Username exist")
+        } else {
+            dispatch({
+                type: 'REGISTER',
+                payload: {
+                    id : username+password,
+                    username,
+                    password
+                }
+            })
+        }
     }
 
     return (
@@ -67,4 +84,4 @@ const styles = StyleSheet.create({
     }
 }) 
 
-export default Register
+export default RegisterScreen

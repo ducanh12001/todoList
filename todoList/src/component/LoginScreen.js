@@ -3,16 +3,28 @@ import React from 'react'
 import { useState } from 'react';
 import { Button } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 const Login = () => {
     const navigation = useNavigation();
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
+
+    const dispatch = useDispatch();
+    const users = useSelector(state => state.auth.users);
 
     const doLogin = () => {
-        navigation.navigate("Home")
+        const payload = users.find((user) => (user.username === username && user.password === password));
+        if (username.trimStart() === "" || password.trimStart() === "") {
+            alert("Please enter details");
+        } else if (payload) {
+            dispatch({
+                type: 'LOGIN',
+                payload
+            })
+        } else {
+            alert("Wrong username or password")
+        }
     }
 
     return (
@@ -21,8 +33,8 @@ const Login = () => {
             <TextInput
                 style={styles.input}
                 placeholder='Enter username'
-                value={email}
-                onChangeText={text => setEmail(text)}
+                value={username}
+                onChangeText={text => setUsername(text)}
             />
             <TextInput
                 style={styles.input}

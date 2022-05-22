@@ -1,9 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { combineReducers } from 'redux'
-import jobReducer from './jobSlice'
+import authReducer from '../reducer/authReducer';
+import appReducer from '../reducer/appReducer'
 
 export default configureStore({
     reducer: {
-        jobs: jobReducer
+        auth: authReducer,
+        app: appReducer
     }
-})
+});

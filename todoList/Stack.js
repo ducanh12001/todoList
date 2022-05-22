@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import Login from './src/component/Login'
+import LoginScreen from './src/component/LoginScreen'
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Home from './src/component/Home';
-import Register from './src/component/Register';
+import RegisterScreen from './src/component/RegisterScreen';
+import { useSelector } from 'react-redux';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,20 +18,17 @@ function AppStack() {
 function AuthStack() {
     return (
         <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Login" component={Login} />
-            <Stack.Screen name="Register" component={Register} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
         </Stack.Navigator>
     )
 }
 
 export const MainStackNavigator = () => {
-    const [user, setUser] = useState(null);
-
+    const user = useSelector(state => state.auth.user);
     return (
-        <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Home" component={Home} />
-            <Stack.Screen name="Login" component={Login} />
-            <Stack.Screen name="Register" component={Register} />
-        </Stack.Navigator>
+        <>
+        {user? <AppStack /> : <AuthStack />}
+        </>
     )
 }

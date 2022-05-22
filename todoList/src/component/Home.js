@@ -1,77 +1,97 @@
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList } from 'react-native'
-import React from 'react'
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList, Keyboard } from 'react-native'
+import React, { useEffect } from 'react'
 import { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { useSelector, useDispatch } from 'react-redux'
-import { addJob, deleteJob, clearAllJob } from '../store/jobSlice'
+import { nanoid } from '@reduxjs/toolkit';
 
 const Home = () => {
-    const navigation = useNavigation();
+    const [newTask, setNewTask] = useState('');
+
     const dispatch = useDispatch();
-    const jobList = useSelector(state => state.jobs);
+    const user = useSelector(state => state.auth.user);
+    const tasks = useSelector(state => state.app.tasks);
+    const sortTask = [...tasks];
+    sortTask.sort((a, b) => new Date(b.time) - new Date(a.time));
 
-    const [jobText, setJobText] = useState('');
-
-    const doAddJob = () => {
-        if (jobText.trimStart() === "") {
-            alert("Enter job");
-            setJobText('');
+    const doAddTask = () => {
+        if (newTask.trimStart() === "") {
+            alert("Enter task");
         }
         const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~a-zA-Z0-9]/;
-        if (jobText && specialChars.test(jobText)) {
-            dispatch(addJob({jobText: jobText}));
+        if (newTask && specialChars.test(newTask)) {
+            dispatch({
+                type: 'ADD',
+                payload: {
+                    id: nanoid(),
+                    newTask: newTask,
+                    time: new Date().toLocaleString()
+                }
+            })
         }
-        setJobText('');
+        setNewTask('');
+        Keyboard.dismiss();
     }
 
-    const doDeleteJob = (id) => {
-        dispatch(deleteJob({id: id}));
+    const doDeleteTask = (id) => {
+        dispatch({
+            type: 'DELETE',
+            payload: id
+        })
     }
 
     const doClearAll = () => {
-        dispatch(clearAllJob());
+        dispatch({
+            type: 'CLEAR',
+        })
+    }
+
+    const doSignOut = () => {
+        dispatch({
+            type: 'LOGOUT',
+        })
     }
 
     return (
         <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={{ fontSize: 24, fontWeight: 'bold' }}>{user.username}</Text>
+                <TouchableOpacity style={{}} onPress={doSignOut}>
+                    <Ionicons name="log-out" size={33} color="black" />
+                </TouchableOpacity>
+            </View>
             <View style={styles.headView}>
                 <TextInput
                     style={styles.input}
                     placeholder='Enter'
-                    value={jobText}
-                    onChangeText={text => setJobText(text)}
+                    value={newTask}
+                    onChangeText={text => setNewTask(text)}
                 />
-                <TouchableOpacity style={styles.icon} onPress={() =>doAddJob()}>
+                <TouchableOpacity style={styles.icon} onPress={doAddTask}>
                     <Ionicons name="add" size={25} />
                 </TouchableOpacity>
             </View>
             <View style={styles.bodyView}>
-                <Text style={{ fontSize: 24 }}>Task</Text>
+                <Text style={{ fontSize: 24, fontWeight:"bold" }}>Task</Text>
+                <TouchableOpacity style={styles.clearBtn} onPress={doClearAll}>
+                    <Text style={{ fontSize: 18, fontWeight:"bold" }}>Clear All</Text>
+                </TouchableOpacity>
+            </View>
+            <View style={styles.botView}>
                 <FlatList
-                    data={jobList}
-                    keyExtractor={(item) => item.id}
+                    data={sortTask}
+                    keyExtractor={(item, index) => item.id}
                     renderItem={({ item }) => {
                         return (
-                            <>{item.newJob !== "" ?
-                            <View style={styles.jobView}>
-                                <Text style={{fontSize: 18}}>{item.newJob.trim()}</Text>
-                                <TouchableOpacity onPress={() =>doDeleteJob(item.id)}>
+                            <View style={styles.taskView}>
+                                <Text style={{ fontSize: 18 }}>{item.newTask.trimStart()}</Text>
+                                <TouchableOpacity onPress={() => doDeleteTask(item.id)}>
                                     <Ionicons name="trash" size={24} />
                                 </TouchableOpacity>
                             </View>
-                            :
-                            <View></View>
-                            }
-                            </>
                         )
                     }}
                 />
-            </View>
-            <View style={styles.botView}>
-                <TouchableOpacity style={styles.clearBtn} onPress={()=>doClearAll()}>
-                    <Text style={{ fontSize: 16 }}>Clear All</Text>
-                </TouchableOpacity>
             </View>
         </View>
     )
@@ -81,9 +101,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 10,
+        backgroundColor: '#20b2de',
+        alignItems: "center",
+    },
     headView: {
         flexDirection: "row",
-        margin: 10
+        marginHorizontal: 10,
+        marginTop: 20
     },
     input: {
         marginRight: 15,
@@ -93,27 +121,30 @@ const styles = StyleSheet.create({
         flex: 8
     },
     icon: {
-        backgroundColor: "gray",
+        backgroundColor: "#50baed",
         alignItems: "center",
         justifyContent: "center",
         flex: 2,
     },
     bodyView: {
-        margin: 10
+        margin: 20,
+        flexDirection: "row",
+        justifyContent: "space-between"
     },
-    jobView: {
-        flexDirection: 'row', 
-        backgroundColor:'#98c3e4', 
+    taskView: {
+        flexDirection: 'row',
+        backgroundColor: '#79b8f7',
         padding: 15,
         justifyContent: "space-between",
         margin: 10,
         borderRadius: 10,
     },
     botView: {
-        margin: 10
+        marginHorizontal: 10,
+        flex: 1,
     },
     clearBtn: {
-        backgroundColor: "gray",
+        backgroundColor: "#1aa7ea",
         height: 40,
         width: 90,
         alignItems: "center",
